@@ -9,33 +9,48 @@ const UPLOADS_ROOT = path.resolve(
   'uploads'
 );
 
-const deleteUploadedFile = async (fileUrl) => {
-  if (!fileUrl) return false;
-
-  try {
-    const parsedUrl = new URL(fileUrl);
-    const uploadsPath = parsedUrl.pathname.split('/uploads/')[1];
-
-    if (!uploadsPath) {
-      throw new Error('Invalid upload URL');
-    }
-    const filePath = path.resolve(
-      UPLOADS_ROOT,
-      decodeURIComponent(uploadsPath)
-    );
-    if (!filePath.startsWith(UPLOADS_ROOT + path.sep)) {
-      throw new Error('Invalid file path');
-    }
-    await fs.promises.unlink(filePath);
-
-    return true;
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      return false; 
-    }
-
-    throw error;
+const deleteUploadedFile = async (fileUrl, folder) => {
+  if (!fileUrl || !folder) {
+    throw new Error('File URL and folder are required');
   }
+
+  const parsedUrl = new URL(fileUrl);
+  const prefix = `/uploads/${folder}/`;
+
+  if (!parsedUrl.pathname.startsWith(prefix)) {
+    throw new Error(`URL does not belong to ${folder}`);
+  }
+
+  const fileName = decodeURIComponent(
+    parsedUrl.pathname.slice(prefix.length)
+  );
+
+  if (
+    !fileName ||
+    fileName.includes('/') ||
+    fileName.includes('\\') ||
+    fileName === '.' ||
+    fileName === '..'
+  ) {
+    throw new Error('Invalid filename');
+  }
+
+  const filePath = path.join(
+    UPLOADS_ROOT,
+    folder,
+    fileName
+  );
+
+  // console.log('Uploads root:', UPLOADS_ROOT);
+  // console.log('URL received:', fileUrl);
+  // console.log('File path to delete:', filePath);
+  // console.log('File exists:', fs.existsSync(filePath));
+
+  await fs.promises.unlink(filePath);
+
+  // console.log('File successfully deleted:', filePath);
+
+  return true;
 };
 
-module.exports =  deleteUploadedFile ;
+module.exports = deleteUploadedFile;
