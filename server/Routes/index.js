@@ -46,6 +46,7 @@ router.get('/admin/innovations', authMiddleware, IdeaController.getAllInnovation
 //Carousel Image
 router.get('/carousel-images', CarouselImage.getCarouselImages);
 router.post('/carousel-images', authMiddleware, CarouselImage.submitCarouselImages);
+router.delete('/carousel-image/delete/:id',authMiddleware,CarouselImage.deleteCarouselImages);
 
 //Gallery
 router.get('/gallery', Gallery.getGallery);
